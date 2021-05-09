@@ -39,10 +39,10 @@ async def customers_view():
     cursor = router.db_connection.cursor()
     cursor.row_factory = sqlite3.Row
     customers = cursor.execute(
-        "SELECT CustomerID, CompanyName, Address, PostalCode, City, Country FROM Customers").fetchall()
+        "SELECT CustomerID id, COALESCE(CompanyName, '') name, "
+        "COALESCE(Address , '') || ' ' || COALESCE(PostalCode, '') || ' ' || "
+        "COALESCE(City , '') || ' ' || COALESCE(Country , '') full_address "
+        "FROM Customers").fetchall()
     return {
-        "customers":
-            [{"id": col_name['CustomerID'], "name": col_name['CompanyName'], "full_address":
-                f"{col_name['Address']} {col_name['PostalCode']} {col_name['City']} {col_name['Country']}"}
-             for col_name in customers]
+        "customers": customers
     }
