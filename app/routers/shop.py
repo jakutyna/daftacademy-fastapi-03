@@ -1,7 +1,7 @@
 import sqlite3
 import pathlib
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 
 router = APIRouter(tags=["shop"])
 
@@ -35,7 +35,6 @@ async def categories_view():
 
 @router.get("/customers")
 async def customers_view():
-    # router.db_connection = sqlite3.connect(router.db_path)
     cursor = router.db_connection.cursor()
     cursor.row_factory = sqlite3.Row
     customers = cursor.execute(
@@ -46,3 +45,15 @@ async def customers_view():
     return {
         "customers": customers
     }
+
+
+@router.get("/products/{product_id}")
+async def product_id_view(product_id: int):
+    router.db_connection = sqlite3.connect(router.db_path)
+    cursor = router.db_connection.cursor()
+    cursor.row_factory = sqlite3.Row
+    product = cursor.execute("SELECT ProductID id, ProductName name FROM Products WHERE id = ?",
+                             (product_id,)).fetchone()
+    if product is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return product

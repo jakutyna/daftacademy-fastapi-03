@@ -34,3 +34,11 @@ def test_customers(test_client):
         "full_address": "Obere Str. 57 12209 Berlin Germany",
     }
     assert example_customer in response.json()["customers"]
+
+
+def test_product_id(test_client):
+    response = test_client.get('/products/1')
+    assert response.status_code == 200
+    assert response.json() == {"id": 1, "name": "Chai"}
+    response = test_client.get('/products/1000')
+    assert response.status_code == 404
