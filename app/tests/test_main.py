@@ -42,3 +42,12 @@ def test_product_id(test_client):
     assert response.json() == {"id": 1, "name": "Chai"}
     response = test_client.get('/products/1000')
     assert response.status_code == 404
+
+
+def test_employees(test_client):
+    example_employee = {"id": 1, "last_name": "Davolio", "first_name": "Nancy", "city": "Seattle"}
+    response = test_client.get('/employees')
+    assert response.status_code == 200
+    assert example_employee in response.json()["employees"]
+    response = test_client.get('/employees?order=foo')
+    assert response.status_code == 400
