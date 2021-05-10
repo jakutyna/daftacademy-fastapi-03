@@ -89,7 +89,7 @@ async def products_extended_view():
 
 
 # Ex5
-@router.get("/products/{product_id}/order")
+@router.get("/products/{product_id}/orders")
 async def product_orders_view(product_id: int):
     cursor = router.db_connection.cursor()
     cursor.row_factory = sqlite3.Row
