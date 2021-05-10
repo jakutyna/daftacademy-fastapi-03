@@ -66,7 +66,7 @@ def test_products_extended(test_client):
 
 
 def test_product_orders(test_client):
-    response = test_client.get("/products/10/order")
+    response = test_client.get("/products/10/orders")
     assert response.status_code == 200
     example_order = {
             "id": 10273,
