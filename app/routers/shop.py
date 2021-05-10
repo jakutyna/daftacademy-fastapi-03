@@ -92,13 +92,14 @@ async def products_extended_view():
 @router.get("/products/{product_id}/order")
 async def product_orders_view(product_id: int):
     cursor = router.db_connection.cursor()
+    cursor.row_factory = sqlite3.Row
+
     # Check if product exists before making Query about orders.
-    product_exists = cursor.execute("SELECT EXISTS(SELECT 1 FROM Products WHERE ProductID = ?)",
-                                    (product_id,)).fetchone()
-    if not product_exists[0]:
+    product = cursor.execute("SELECT ProductID FROM Products WHERE ProductID = ?",
+                             (product_id,)).fetchone()
+    if product is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    cursor.row_factory = sqlite3.Row
     query = """
                SELECT 
                     od.OrderID AS id,
@@ -109,7 +110,7 @@ async def product_orders_view(product_id: int):
                     'Order Details' od
                         JOIN Orders o ON od.OrderID = o.OrderID
                             JOIN Customers c ON o.CustomerID = c.CustomerID
-                WHERE ProductID = ?;
+                WHERE ProductID = ?
                """
     orders = cursor.execute(query, (product_id,)).fetchall()
     return {"orders": orders}
