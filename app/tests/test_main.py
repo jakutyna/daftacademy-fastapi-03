@@ -75,6 +75,6 @@ def test_product_orders(test_client):
             "total_price": 565.44,
         }
     assert example_order in response.json()["orders"]
-    response = test_client.get("/products/1000/order")
+    response = test_client.get("/products/1000/orders")
     assert response.status_code == 404
 

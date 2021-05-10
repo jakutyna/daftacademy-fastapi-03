@@ -1,6 +1,7 @@
 import sqlite3
 import pathlib
 from typing import Optional
+from pydantic import BaseModel
 
 from fastapi import APIRouter, HTTPException, status
 
@@ -114,3 +115,43 @@ async def product_orders_view(product_id: int):
                """
     orders = cursor.execute(query, (product_id,)).fetchall()
     return {"orders": orders}
+
+
+# Ex6
+class CategoryName(BaseModel):
+    name: str
+
+
+@router.post("/categories", status_code=status.HTTP_201_CREATED)
+async def create_category_view(new_category: CategoryName):
+    cursor = router.db_connection.cursor()
+    cursor.execute("INSERT INTO Categories (CategoryName) VALUES (?)", (new_category.name,))
+    router.db_connection.commit()
+    return {"id": cursor.lastrowid, "name": new_category.name}
+
+
+@router.put("/categories/{cat_id}", status_code=status.HTTP_200_OK)
+async def update_category_view(cat_id: int, update_category: CategoryName):
+    cursor = router.db_connection.cursor()
+    category = cursor.execute("SELECT CategoryID FROM Categories WHERE CategoryID = ?",
+                              (cat_id,)).fetchone()
+    if category is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    cursor.execute("UPDATE Categories SET CategoryName = ? WHERE CategoryID = ?",
+                   (update_category.name, cat_id))
+    router.db_connection.commit()
+    return {"id": cat_id, "name": update_category.name}
+
+
+@router.delete("/categories/{cat_id}", status_code=status.HTTP_200_OK)
+async def delete_category_view(cat_id: int):
+    cursor = router.db_connection.cursor()
+    category = cursor.execute("SELECT CategoryID FROM Categories WHERE CategoryID = ?",
+                              (cat_id,)).fetchone()
+    if category is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    cursor.execute("DELETE FROM Categories WHERE CategoryID = ?", (cat_id,))
+    router.db_connection.commit()
+    return {"deleted": cat_id}
