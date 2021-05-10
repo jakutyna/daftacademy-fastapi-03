@@ -22,7 +22,7 @@ async def shutdown():
     router.db_connection.close()
 
 
-# Ex1
+# Ex1 - selecting specific columns from "Categories" and "Customers" tables in db.
 @router.get("/categories")
 async def categories_view():
     cursor = router.db_connection.cursor()
@@ -48,6 +48,7 @@ async def customers_view():
     }
 
 
+# Ex2 - Selecting product by id from "Products" table in db.
 @router.get("/products/{product_id}")
 async def product_id_view(product_id: int):
     cursor = router.db_connection.cursor()
@@ -59,9 +60,9 @@ async def product_id_view(product_id: int):
     return product
 
 
+# Ex3 - Select employees from "Employees" table in db using parametric ORDER BY, LIMIT and OFFSET options.
 @router.get("/employees")
 async def employees_view(limit: Optional[int] = -1, offset: Optional[int] = 0, order: Optional[str] = None):
-    router.db_connection = sqlite3.connect(router.db_path)
     cursor = router.db_connection.cursor()
     cursor.row_factory = sqlite3.Row
     if order not in ["first_name", "last_name", "city", None]:
@@ -74,3 +75,16 @@ async def employees_view(limit: Optional[int] = -1, offset: Optional[int] = 0, o
                                f"City city FROM Employees ORDER BY {order} LIMIT :limit OFFSET :offset",
                                {"limit": limit, "offset": offset}).fetchall()
     return {"employees": employees}
+
+
+# Ex4 - Select data from 3 tables in db using JOIN.
+@router.get("/products_extended")
+async def products_extended_view():
+    cursor = router.db_connection.cursor()
+    cursor.row_factory = sqlite3.Row
+    products_extended = cursor.execute("SELECT Products.ProductID id, Products.ProductName name, "
+                                       "Categories.CategoryName category, "
+                                       "Suppliers.CompanyName supplier FROM Products "
+                                       "JOIN Categories ON Products.CategoryID = Categories.CategoryID "
+                                       "JOIN Suppliers ON Products.SupplierID = Suppliers.SupplierID").fetchall()
+    return {"products_extended": products_extended}

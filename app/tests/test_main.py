@@ -11,7 +11,7 @@ def test_client():
 
 
 def test_categories(test_client):
-    response = test_client.get('/categories')
+    response = test_client.get("/categories")
     assert response.status_code == 200
     assert response.json() == {"categories": [
         {"id": 1, "name": "Beverages"},
@@ -26,7 +26,7 @@ def test_categories(test_client):
 
 
 def test_customers(test_client):
-    response = test_client.get('/customers')
+    response = test_client.get("/customers")
     assert response.status_code == 200
     example_customer = {
         "id": "ALFKI",
@@ -37,17 +37,29 @@ def test_customers(test_client):
 
 
 def test_product_id(test_client):
-    response = test_client.get('/products/1')
+    response = test_client.get("/products/1")
     assert response.status_code == 200
     assert response.json() == {"id": 1, "name": "Chai"}
-    response = test_client.get('/products/1000')
+    response = test_client.get("/products/1000")
     assert response.status_code == 404
 
 
 def test_employees(test_client):
     example_employee = {"id": 1, "last_name": "Davolio", "first_name": "Nancy", "city": "Seattle"}
-    response = test_client.get('/employees')
+    response = test_client.get("/employees")
     assert response.status_code == 200
     assert example_employee in response.json()["employees"]
-    response = test_client.get('/employees?order=foo')
+    response = test_client.get("/employees?order=foo")
     assert response.status_code == 400
+
+
+def test_products_extended(test_client):
+    response = test_client.get("/products_extended")
+    assert response.status_code == 200
+    example_product = {
+        "id": 1,
+        "name": "Chai",
+        "category": "Beverages",
+        "supplier": "Exotic Liquids",
+    }
+    assert example_product in response.json()["products_extended"]
