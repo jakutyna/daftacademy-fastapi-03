@@ -5,11 +5,9 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, status
 
 router = APIRouter(tags=["shop"])
-
+# router.db_path = "app/db/northwind.db"
 router.db_path = str(pathlib.Path(__file__).parent.parent) + "/northwind.db"
 
-
-# router.db_path = "app/db/northwind.db"
 
 @router.on_event("startup")
 async def startup():
@@ -106,7 +104,7 @@ async def product_orders_view(product_id: int):
                     od.OrderID AS id,
                     c.CompanyName AS customer,
                     od.Quantity AS quantity,
-                    (od.UnitPrice * od.Quantity) - (od.Discount * (od.UnitPrice * od.Quantity)) AS total_price
+                    ROUND((od.UnitPrice * od.Quantity) - (od.Discount * (od.UnitPrice * od.Quantity)),2) AS total_price
                 FROM 
                     'Order Details' od
                         JOIN Orders o ON od.OrderID = o.OrderID
