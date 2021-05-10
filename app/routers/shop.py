@@ -88,3 +88,30 @@ async def products_extended_view():
                                        "JOIN Categories ON Products.CategoryID = Categories.CategoryID "
                                        "JOIN Suppliers ON Products.SupplierID = Suppliers.SupplierID").fetchall()
     return {"products_extended": products_extended}
+
+
+# Ex5
+@router.get("/products/{product_id}/order")
+async def product_orders_view(product_id: int):
+    cursor = router.db_connection.cursor()
+    # Check if product exists before making Query about orders.
+    product_exists = cursor.execute("SELECT EXISTS(SELECT 1 FROM Products WHERE ProductID = ?)",
+                                    (product_id,)).fetchone()
+    if not product_exists[0]:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    cursor.row_factory = sqlite3.Row
+    query = """
+               SELECT 
+                    od.OrderID AS id,
+                    c.CompanyName AS customer,
+                    od.Quantity AS quantity,
+                    (od.UnitPrice * od.Quantity) - (od.Discount * (od.UnitPrice * od.Quantity)) AS total_price
+                FROM 
+                    'Order Details' od
+                        JOIN Orders o ON od.OrderID = o.OrderID
+                            JOIN Customers c ON o.CustomerID = c.CustomerID
+                WHERE ProductID = ?;
+               """
+    orders = cursor.execute(query, (product_id,)).fetchall()
+    return {"orders": orders}

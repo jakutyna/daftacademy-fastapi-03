@@ -63,3 +63,18 @@ def test_products_extended(test_client):
         "supplier": "Exotic Liquids",
     }
     assert example_product in response.json()["products_extended"]
+
+
+def test_product_orders(test_client):
+    response = test_client.get("/products/10/order")
+    assert response.status_code == 200
+    example_order = {
+            "id": 10273,
+            "customer": "QUICK-Stop",
+            "quantity": 24,
+            "total_price": 565.44,
+        }
+    assert example_order in response.json()["orders"]
+    response = test_client.get("/products/1000/order")
+    assert response.status_code == 404
+
