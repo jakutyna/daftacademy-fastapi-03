@@ -127,7 +127,12 @@ async def create_category_view(new_category: CategoryName):
     cursor = router.db_connection.cursor()
     cursor.execute("INSERT INTO Categories (CategoryName) VALUES (?)", (new_category.name,))
     router.db_connection.commit()
-    return {"id": cursor.lastrowid, "name": new_category.name}
+
+    cat_id = cursor.lastrowid
+    cursor.row_factory = sqlite3.Row
+    category = cursor.execute("SELECT CategoryID FROM Categories WHERE CategoryID = ?",
+                              (cat_id,)).fetchone()
+    return category
 
 
 @router.put("/categories/{cat_id}", status_code=status.HTTP_200_OK)
@@ -141,7 +146,11 @@ async def update_category_view(cat_id: int, update_category: CategoryName):
     cursor.execute("UPDATE Categories SET CategoryName = ? WHERE CategoryID = ?",
                    (update_category.name, cat_id))
     router.db_connection.commit()
-    return {"id": cat_id, "name": update_category.name}
+
+    cursor.row_factory = sqlite3.Row
+    category = cursor.execute("SELECT CategoryID FROM Categories WHERE CategoryID = ?",
+                              (cat_id,)).fetchone()
+    return category
 
 
 @router.delete("/categories/{cat_id}", status_code=status.HTTP_200_OK)
@@ -154,4 +163,4 @@ async def delete_category_view(cat_id: int):
 
     cursor.execute("DELETE FROM Categories WHERE CategoryID = ?", (cat_id,))
     router.db_connection.commit()
-    return {"deleted": cat_id}
+    return {"deleted": 1}
