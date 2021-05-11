@@ -124,43 +124,39 @@ class CategoryName(BaseModel):
 
 @router.post("/categories", status_code=status.HTTP_201_CREATED)
 async def create_category_view(new_category: CategoryName):
-    cursor = router.db_connection.cursor()
-    cursor.execute("INSERT INTO Categories (CategoryName) VALUES (?)", (new_category.name,))
+    cursor = router.db_connection.execute("INSERT INTO Categories (CategoryName) VALUES (?)",
+                                          (new_category.name,))
     router.db_connection.commit()
-
     cat_id = cursor.lastrowid
-    cursor.row_factory = sqlite3.Row
-    category = cursor.execute("SELECT CategoryID AS id, CategoryName AS name FROM Categories WHERE CategoryID = ?",
-                              (cat_id,)).fetchone()
-    return category
+    router.db_connection.row_factory = sqlite3.Row
+    categories = router.db_connection.execute(
+        """SELECT CategoryID id, CategoryName name FROM Categories WHERE CategoryID = ?""",
+        (cat_id,)).fetchone()
+    return categories
 
 
 @router.put("/categories/{cat_id}", status_code=status.HTTP_200_OK)
-async def update_category_view(cat_id: int, update_category: CategoryName):
-    cursor = router.db_connection.cursor()
-    category = cursor.execute("SELECT CategoryID FROM Categories WHERE CategoryID = ?",
-                              (cat_id,)).fetchone()
-    if category is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-    cursor.execute("UPDATE Categories SET CategoryName = ? WHERE CategoryID = ?",
-                   (update_category.name, cat_id))
+async def update_category_view(update_category: CategoryName, cat_id: int):
+    router.db_connection.execute(
+        "UPDATE Categories SET CategoryName = ? WHERE CategoryID = ?", (
+            update_category.name, cat_id,)
+    )
     router.db_connection.commit()
-
-    cursor.row_factory = sqlite3.Row
-    category = cursor.execute("SELECT CategoryID AS id, CategoryName AS name FROM Categories WHERE CategoryID = ?",
-                              (cat_id,)).fetchone()
-    return category
+    router.db_connection.row_factory = sqlite3.Row
+    data = router.db_connection.execute(
+        """SELECT CategoryID id, CategoryName name FROM Categories WHERE CategoryID = ?""",
+        (cat_id,)).fetchone()
+    if data is None:
+        raise HTTPException(status_code=404)
+    return data
 
 
 @router.delete("/categories/{cat_id}", status_code=status.HTTP_200_OK)
 async def delete_category_view(cat_id: int):
-    cursor = router.db_connection.cursor()
-    category = cursor.execute("SELECT CategoryID FROM Categories WHERE CategoryID = ?",
-                              (cat_id,)).fetchone()
-    if category is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-    cursor.execute("DELETE FROM Categories WHERE CategoryID = ?", (cat_id,))
+    cursor = router.db_connection.execute(
+        "DELETE FROM Categories WHERE CategoryID = ?", (cat_id,)
+    )
     router.db_connection.commit()
-    return {"deleted": 1}
+    if cursor.rowcount:
+        return {"deleted": 1}
+    raise HTTPException(status_code=404)
