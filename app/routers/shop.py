@@ -130,7 +130,7 @@ async def create_category_view(new_category: CategoryName):
 
     cat_id = cursor.lastrowid
     cursor.row_factory = sqlite3.Row
-    category = cursor.execute("SELECT CategoryID FROM Categories WHERE CategoryID = ?",
+    category = cursor.execute("SELECT CategoryID AS id, CategoryName AS name FROM Categories WHERE CategoryID = ?",
                               (cat_id,)).fetchone()
     return category
 
@@ -148,7 +148,7 @@ async def update_category_view(cat_id: int, update_category: CategoryName):
     router.db_connection.commit()
 
     cursor.row_factory = sqlite3.Row
-    category = cursor.execute("SELECT CategoryID FROM Categories WHERE CategoryID = ?",
+    category = cursor.execute("SELECT CategoryID AS id, CategoryName AS name FROM Categories WHERE CategoryID = ?",
                               (cat_id,)).fetchone()
     return category
 
